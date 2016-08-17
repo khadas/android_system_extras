@@ -349,9 +349,14 @@ static u32 compute_blocks_per_group()
 	return info.block_size * 8;
 }
 
-static u32 compute_inodes()
+static u32 compute_inodes_default()
 {
 	return DIV_ROUND_UP(info.len, info.block_size) / 4;
+}
+
+static u32 compute_inodes(uint32_t bytes_per_inode)
+{
+	return DIV_ROUND_UP(info.len, bytes_per_inode);
 }
 
 static u32 compute_inodes_per_group()
@@ -428,6 +433,29 @@ int make_ext4fs(const char *filename, long long len,
 	return status;
 }
 
+int make_ext4fs_bisize(const char *filename, long long len,
+				const char *mountpoint, struct selabel_handle *sehnd,
+				uint32_t block_size, uint32_t bytes_per_inode)
+{
+	int fd;
+	int status;
+
+	reset_ext4fs_info();
+	info.len = len;
+	info.block_size = block_size;
+	info.bytes_per_inode = bytes_per_inode;
+
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
+	if (fd < 0) {
+		error_errno("open");
+		return EXIT_FAILURE;
+	}
+
+	status = make_ext4fs_internal(fd, NULL, NULL, mountpoint, NULL, 0, 0, 0, 1, 0, sehnd, 0, -1, NULL);
+	close(fd);
+
+	return status;
+}
 /* return a newly-malloc'd string that is a copy of str.  The new string
    is guaranteed to have a trailing slash.  If absolute is true, the new string
    is also guaranteed to have a leading slash.
@@ -542,8 +570,10 @@ int make_ext4fs_internal(int fd, const char *_directory, const char *_target_out
 	if (info.blocks_per_group <= 0)
 		info.blocks_per_group = compute_blocks_per_group();
 
-	if (info.inodes <= 0)
-		info.inodes = compute_inodes();
+	if (info.bytes_per_inode <= 0)
+		info.inodes = compute_inodes_default();
+	else
+		info.inodes = compute_inodes(info.bytes_per_inode);
 
 	if (info.inode_size <= 0)
 		info.inode_size = 256;
