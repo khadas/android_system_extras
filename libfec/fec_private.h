@@ -59,7 +59,7 @@
 struct verity_header {
     uint32_t magic;
     uint32_t version;
-    uint8_t signature[RSANUMBYTES];
+    uint8_t signature[MAXRSANUMBYTES];
     uint32_t length;
 };
 
