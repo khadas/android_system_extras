@@ -41,9 +41,8 @@ static int convert_to_mincrypt_format(RSA *rsa, RSAPublicKey *pkey)
 {
     int ret = -1;
     unsigned int i;
-
-    if (RSA_size(rsa) != RSANUMBYTES)
-        goto out;
+    unsigned int rsa_len = 0;
+    unsigned int rsa_len_words = 0;
 
     BN_CTX* ctx = BN_CTX_new();
     BIGNUM* r32 = BN_new();
@@ -53,16 +52,24 @@ static int convert_to_mincrypt_format(RSA *rsa, RSAPublicKey *pkey)
     BIGNUM* n = BN_new();
     BIGNUM* n0inv = BN_new();
 
+    rsa_len = RSA_size(rsa);
+    rsa_len_words = rsa_len / sizeof(uint32_t);
+
+    if (rsa_len != 128 && rsa_len != 256 && rsa_len != 512 ) {
+        ret = 0;
+        goto out;
+    }
+
     BN_set_bit(r32, 32);
     BN_copy(n, rsa->n);
-    BN_set_bit(r, RSANUMWORDS * 32);
+    BN_set_bit(r, rsa_len_words * 32);
     BN_mod_sqr(rr, r, n, ctx);
     BN_div(NULL, rem, n, r32, ctx);
     BN_mod_inverse(n0inv, rem, r32, ctx);
 
-    pkey->len = RSANUMWORDS;
+    pkey->len = rsa_len_words;
     pkey->n0inv = 0 - BN_get_word(n0inv);
-    for (i = 0; i < RSANUMWORDS; i++) {
+    for (i = 0; i < rsa_len_words; i++) {
         BN_div(rr, rem, rr, r32, ctx);
         pkey->rr[i] = BN_get_word(rem);
         BN_div(n, rem, n, r32, ctx);
