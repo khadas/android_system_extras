@@ -134,9 +134,9 @@ static bool copy_data(int src_fd, int dst_fd, size_t num_bytes)
 int module_setActiveBootSlot(boot_control_module_t *module, unsigned slot)
 {
   BrilloBootInfo info;
-  int src_fd, dst_fd;
-  uint64_t src_size, dst_size;
-  char src_name[32];
+  //int src_fd, dst_fd;
+  //uint64_t src_size, dst_size;
+  //char src_name[32];
 
   if (slot >= 2)
     return -EINVAL;
@@ -163,7 +163,7 @@ int module_setActiveBootSlot(boot_control_module_t *module, unsigned slot)
   }
 
   // Finally copy the contents of boot_X into boot.
-  snprintf(src_name, sizeof(src_name), "boot_%c", slot + 'a');
+  /*snprintf(src_name, sizeof(src_name), "boot_%c", slot + 'a');
   src_fd = boot_info_open_partition(src_name, &src_size, O_RDONLY);
   if (src_fd == -1) {
     fprintf(stderr, "Error opening \"%s\" partition.\n", src_name);
@@ -200,7 +200,7 @@ int module_setActiveBootSlot(boot_control_module_t *module, unsigned slot)
   }
 
   close(src_fd);
-  close(dst_fd);
+  close(dst_fd);*/
   return 0;
 }
 
