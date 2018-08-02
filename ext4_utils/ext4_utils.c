@@ -256,6 +256,7 @@ void ext4_create_fs_aux_info()
 	if (!aux_info.bg_desc)
 		critical_error_errno("calloc");
 	aux_info.xattrs = NULL;
+	aux_info.reserved_blocks = 32768;
 }
 
 void ext4_free_fs_aux_info()
@@ -279,7 +280,7 @@ void ext4_fill_in_sb(int real_uuid)
 
 	sb->s_inodes_count = info.inodes_per_group * aux_info.groups;
 	sb->s_blocks_count_lo = aux_info.len_blocks;
-	sb->s_r_blocks_count_lo = 0;
+	sb->s_r_blocks_count_lo = aux_info.reserved_blocks;
 	sb->s_free_blocks_count_lo = 0;
 	sb->s_free_inodes_count = 0;
 	sb->s_first_data_block = aux_info.first_data_block;
