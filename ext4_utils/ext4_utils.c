@@ -256,7 +256,9 @@ void ext4_create_fs_aux_info()
 	if (!aux_info.bg_desc)
 		critical_error_errno("calloc");
 	aux_info.xattrs = NULL;
-	aux_info.reserved_blocks = 32768;
+	aux_info.reserved_blocks = (aux_info.len_blocks * 5) / 100;
+        if (aux_info.reserved_blocks > 32768)
+           aux_info.reserved_blocks = 32768;
 }
 
 void ext4_free_fs_aux_info()
